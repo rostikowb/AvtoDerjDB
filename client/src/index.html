@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Upload</title>
+</head>
+<body>
+<div class="msg">
+    <span id="msg"></span>
+</div>
+<div class="main">
+    <input id="filePath" type="file" multiple accept=".csv"/>
+    <input id="btnSend" type="submit" value="send"/>
+    <input id="btnCheck" type="submit" value="check"/>
+</div>
+<div id="result"></div>
+<script>
+    const electron = require('electron');
+    const wait = require('waait');
+    const {ipcRenderer} = electron;
+    const shortHash = require("short-hash");
+    const path = require("path");
+    const btnCheck = document.getElementById('btnCheck');
+    const msgItem = document.getElementById('msg');
+    let btnSend = document.getElementById('btnSend');
+    // let btnPath = document.getElementById('btnSend');
+    let inpPath;
+    let pathArr = [];
+    let pathArrC = [];
+
+    // Send a request to the server to get the current summary
+    btnCheck.onclick = () => {
+        ipcRenderer.send('check', true);
+    };
+
+    // Start the process of sending files to the server
+    btnSend.onclick = () => {
+
+        // Lock the submit button for 10 seconds
+        btnSend.disabled = true;
+        btnSend.style.cursor = 'default';
+
+        // Clear previous data from the page
+        clear();
+
+        // Write downloaded files to the page
+        inpPath = document.getElementById('filePath').files;
+        let i = inpPath.length;
+        while (i--) {
+            pathArr.push(inpPath[i].path);
+            displayTasks(inpPath, i);
+        }
+
+        inpPath = null;
+
+        // Dispatch an event that starts unloading
+        ipcRenderer.send('path', pathArr.reverse());
+        pathArrC = pathArrC.concat(pathArr);
+        pathArr = [];
+
+        // Unlock button
+        wait(10000).then(()=>{
+            btnSend.disabled = false;
+            btnSend.style.cursor = 'pointer';
+        })
+
+    };
+
+    // Listen to the event message from the server
+    ipcRenderer.on('msg', (e, msg) => {
+        msgItem.innerText = msg;
+    });
+
+    // Listen to the status event from the server and add it to the page
+    ipcRenderer.on('status', (e, msg) => {
+        addResultToTask(msg);
+    });
+
+    // Listen a response to the request based on the results of adding files to the database
+    ipcRenderer.on('check', (e, msg) => {
+        let res = preparResCheck(msg);
+        alert('TRUE: '+res.true+' \nFALSE: '+res.false);
+    });
+
+    const displayTasks = (tasks, i) => {
+        let box = document.getElementById('result');
+        let domEl = document.createElement("p");
+        domEl.innerHTML = '<span id="task'+i+'">'+tasks[i].name+': </span>';
+        box.insertBefore(domEl, box.lastChild)
+    };
+
+    const addResultToTask = res => {
+        let mainEl = document.getElementById('task'+res.id);
+        let domEl = document.createElement("b");
+        domEl.innerHTML = ' <b>'+res.status+'</b>' ;
+        mainEl.insertBefore(domEl, mainEl.lastChild.nextSibling)
+    };
+
+    const clear = ()=>{
+        pathArrC = [];
+        document.getElementById('result').innerHTML = null;
+    };
+
+    // Convert the response to a friendly name through caching
+    const preparResCheck = obj=>{
+
+        let objRes = {
+            true: [],
+            false: [],
+        };
+        let objHax = {};
+
+        pathArrC.forEach(value => {
+            let val = path.basename(value);
+            objHax[shortHash(val)] = val;
+        });
+
+        Object.keys(objHax).forEach(key => {
+            if (!(obj.true.indexOf(key+'.csv') === -1)) {
+                objRes.true.push(objHax[key])
+            }
+        });
+        Object.keys(objHax).forEach(key => {
+            if (!(obj.false.indexOf(key+'.csv') === -1)) {
+                objRes.false.push(objHax[key])
+            }
+        });
+        return objRes;
+    }
+
+</script>
+</body>
+</html>

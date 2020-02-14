@@ -1,0 +1,8 @@
+.idea
+api/.idea
+api/build
+client/.idea
+api/node_modules
+client/node_modules
+client/test
+
