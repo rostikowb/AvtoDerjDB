@@ -28,7 +28,7 @@
     "body-parser": "^1.18.3",
     "dotenv": "^6.1.0",
     "express": "^5.0.0-alpha.6",
-    "express-fileupload": "^1.1.6",
+    "express-fileupload": "^1.1.9",
     "express-form-data": "^2.0.11",
     "fb": "^2.0.0",
     "jsonwebtoken": "^8.5.1",
