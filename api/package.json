@@ -25,9 +25,9 @@
   "homepage": "https://github.com/bogutski/todo-server#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "body-parser": "^1.18.3",
+    "body-parser": "^1.20.1",
     "dotenv": "^6.1.0",
-    "express": "^5.0.0-alpha.6",
+    "express": "^5.0.0-beta.1",
     "express-fileupload": "^1.1.6",
     "express-form-data": "^2.0.11",
     "fb": "^2.0.0",
